@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #3b82f6; /* soft blue */
+  --color-background: #f9fafb; /* light gray */
+}
+
+body {
+  @apply bg-background text-gray-900 font-sans;
+}
+
+#root {
+  min-height: 100vh;
+}
