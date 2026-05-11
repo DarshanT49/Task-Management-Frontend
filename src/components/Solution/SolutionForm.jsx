@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import Button from '../common/Button';
-import Input from '../common/Input';
-import Card from '../common/Card';
 import DynamicFieldInput from './DynamicFieldInput';
+import { Lightbulb, Check } from 'lucide-react';
 
 const SolutionForm = ({ onSubmit, onCancel }) => {
   const [summary, setSummary] = useState('');
@@ -41,33 +40,48 @@ const SolutionForm = ({ onSubmit, onCancel }) => {
   };
 
   return (
-    <Card className="mb-8 border-blue-100 bg-blue-50/10">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <h3 className="text-lg font-semibold text-gray-800">New Solution</h3>
-        
-        <Input
-          label="Summary"
-          value={summary}
-          onChange={(e) => setSummary(e.target.value)}
-          placeholder="Briefly explain what you learned or solved"
-          required
-        />
+    <div className="bg-white border-2 border-blue-500 rounded-2xl shadow-2xl overflow-hidden">
+      <div className="px-6 py-3 bg-blue-500 flex items-center justify-between">
+        <h3 className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
+          <Lightbulb size={14} /> New Solution Entry
+        </h3>
+        <button onClick={onCancel} className="text-blue-100 hover:text-white transition-colors text-[10px] font-bold uppercase tracking-widest">
+          Cancel
+        </button>
+      </div>
 
-        <DynamicFieldInput
-          fields={fields}
-          onAddField={handleAddField}
-          onRemoveField={handleRemoveField}
-          onFieldChange={handleFieldChange}
-        />
+      <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">Summary</label>
+          <input
+            autoFocus
+            value={summary}
+            onChange={(e) => setSummary(e.target.value)}
+            placeholder="What was the breakthrough or key takeaway?"
+            className="w-full bg-transparent border-none text-lg font-bold text-gray-900 placeholder-gray-200 focus:outline-none"
+            required
+          />
+        </div>
 
-        <div className="flex gap-2 justify-end pt-2">
-          {onCancel && (
-            <Button variant="secondary" onClick={onCancel}>Cancel</Button>
-          )}
-          <Button type="submit">Add Solution</Button>
+        <div className="pt-2">
+          <DynamicFieldInput
+            fields={fields}
+            onAddField={handleAddField}
+            onRemoveField={handleRemoveField}
+            onFieldChange={handleFieldChange}
+          />
+        </div>
+
+        <div className="flex gap-3 justify-end pt-4 border-t border-gray-50">
+          <button 
+            type="submit" 
+            className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 active:scale-95"
+          >
+            <Check size={14} /> Save Outcome
+          </button>
         </div>
       </form>
-    </Card>
+    </div>
   );
 };
 

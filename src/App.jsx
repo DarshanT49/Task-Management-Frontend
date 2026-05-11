@@ -42,6 +42,11 @@ function App() {
   const [tasks, setTasks] = useState(MOCK_DATA);
   const [todos, setTodos] = useState([]);
   const [notes, setNotes] = useState([]);
+  const [groups, setGroups] = useState([
+    { id: '1', name: 'Personal' },
+    { id: '2', name: 'Work' },
+    { id: '3', name: 'Learning' }
+  ]);
 
   const addTask = (newTask) => {
     const taskWithId = {
@@ -104,12 +109,42 @@ function App() {
     const noteWithId = {
       ...newNote,
       id: Date.now().toString(),
+      createdAt: newNote.createdAt || new Date().toISOString()
     };
     setNotes([...notes, noteWithId]);
   };
 
+  const updateNote = (updatedNote) => {
+    setNotes(prevNotes => prevNotes.map(note => 
+      note.id === updatedNote.id ? updatedNote : note
+    ));
+  };
+
   const deleteNote = (noteId) => {
     setNotes(prevNotes => prevNotes.filter(note => note.id !== noteId));
+  };
+
+  // Group functions
+  const addGroup = (name) => {
+    const newGroup = {
+      id: Date.now().toString(),
+      name
+    };
+    setGroups([...groups, newGroup]);
+  };
+
+  const deleteGroup = (groupId) => {
+    setGroups(prevGroups => prevGroups.filter(g => g.id !== groupId));
+    // Reset group for notes in this group
+    setNotes(prevNotes => prevNotes.map(note => 
+      note.groupId === groupId ? { ...note, groupId: null } : note
+    ));
+  };
+
+  const updateNoteGroup = (noteId, groupId) => {
+    setNotes(prevNotes => prevNotes.map(note =>
+      note.id === noteId ? { ...note, groupId } : note
+    ));
   };
 
   const convertTaskToNote = (task) => {
@@ -118,7 +153,8 @@ function App() {
       content: task.description || '',
       category: 'Task Archive',
       tags: ['task', 'completed'],
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      groupId: null
     };
     addNote(newNote);
     setTasks(prevTasks => prevTasks.filter(t => t.id !== task.id));
@@ -131,9 +167,11 @@ function App() {
         tasks={tasks}
         todos={todos}
         notes={notes}
+        groups={groups}
         addTask={addTask}
         addTodo={addTodo}
         addNote={addNote}
+        updateNote={updateNote}
         addSolution={addSolution}
         toggleTaskStatus={toggleTaskStatus}
         toggleTodo={toggleTodo}
@@ -141,6 +179,9 @@ function App() {
         convertTodoToTask={convertTodoToTask}
         deleteNote={deleteNote}
         convertTaskToNote={convertTaskToNote}
+        addGroup={addGroup}
+        deleteGroup={deleteGroup}
+        updateNoteGroup={updateNoteGroup}
       />
     </div>
   );

@@ -4,7 +4,12 @@ import TaskDetail from '../pages/TaskDetail';
 import Todo from '../pages/Todo';
 import Notes from '../pages/Notes';
 
-const AppRoutes = ({ tasks, todos, notes, addTask, addTodo, addNote, addSolution, toggleTaskStatus, toggleTodo, deleteTodo, convertTodoToTask, deleteNote, convertTaskToNote }) => {
+const AppRoutes = ({ 
+  tasks, todos, notes, groups, 
+  addTask, addTodo, addNote, updateNote, addSolution, 
+  toggleTaskStatus, toggleTodo, deleteTodo, convertTodoToTask, 
+  deleteNote, convertTaskToNote, addGroup, deleteGroup, updateNoteGroup 
+}) => {
   const navigate = useNavigate();
 
   const handleTaskClick = (id) => {
@@ -50,9 +55,14 @@ const AppRoutes = ({ tasks, todos, notes, addTask, addTodo, addNote, addSolution
         element={
           <Notes
             notes={notes}
+            groups={groups}
             addNote={addNote}
+            updateNote={updateNote}
             deleteNote={deleteNote}
             convertTaskToNote={convertTaskToNote}
+            addGroup={addGroup}
+            deleteGroup={deleteGroup}
+            updateNoteGroup={updateNoteGroup}
           />
         }
       />
