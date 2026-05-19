@@ -1,4 +1,4 @@
-const BASE_URL = "https://task-management-backend-lmax.onrender.com";
+const BASE_URL = "https://task-management-backend-lmax.onrender.com/api";
 
 async function handleResponse(res) {
   if (!res.ok) {
