@@ -121,6 +121,7 @@ export default function App() {
     try {
       const createdNote = await api.createNote(newNote);
       setNotes((prev) => [...prev, createdNote]);
+      return createdNote;
     } catch (error) {
       toast.error("Failed to create note.");
     }

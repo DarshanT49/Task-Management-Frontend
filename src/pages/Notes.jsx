@@ -15,11 +15,14 @@ export default function Notes({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const isMobile = useMediaQuery("(max-width: 767px)");
 
-  const handleFormSubmit = (noteData) => {
+  const handleFormSubmit = async (noteData) => {
     if (editingNote) {
       updateNote(noteData);
     } else {
-      addNote({ ...noteData, groupId: noteData.groupId || selectedGroupId });
+      const created = await addNote({ ...noteData, groupId: noteData.groupId || selectedGroupId });
+      if (created) {
+        setEditingNote(created);
+      }
     }
   };
 
@@ -86,7 +89,7 @@ export default function Notes({
           <div className="flex-1 overflow-y-auto scrollbar-thin">
             <div className="max-w-4xl mx-auto h-full">
               <NoteForm
-                key={editingNote?.id || "new"}
+                key="note-editor"
                 onSubmit={handleFormSubmit}
                 onDelete={handleDelete}
                 initialData={editingNote}

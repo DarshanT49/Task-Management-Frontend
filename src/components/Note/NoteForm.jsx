@@ -10,13 +10,22 @@ export default function NoteForm({ onSubmit, onDelete, initialData, groups }) {
   const [isSaved, setIsSaved] = useState(true);
   const editorRef = useRef(null);
 
+  const prevIdRef = useRef(initialData?.id);
+
   useEffect(() => {
-    setTitle(initialData?.title || "");
-    setGroupId(initialData?.groupId || "");
-    if (editorRef.current) {
-      editorRef.current.innerHTML = initialData?.content || "";
+    if (initialData?.id !== prevIdRef.current) {
+      if (title !== (initialData?.title || "")) {
+        setTitle(initialData?.title || "");
+      }
+      if (groupId !== (initialData?.groupId || "")) {
+        setGroupId(initialData?.groupId || "");
+      }
+      if (editorRef.current && editorRef.current.innerHTML !== (initialData?.content || "")) {
+        editorRef.current.innerHTML = initialData?.content || "";
+      }
+      setIsSaved(true);
+      prevIdRef.current = initialData?.id;
     }
-    setIsSaved(true);
   }, [initialData]);
 
   useEffect(() => {
