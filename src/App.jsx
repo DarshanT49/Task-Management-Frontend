@@ -1,190 +1,217 @@
-import { useState } from 'react';
-import Navbar from './components/layout/Navbar';
-import AppRoutes from './routes/AppRoutes';
+import { useState, useEffect } from "react";
+import Navbar from "./components/layout/Navbar";
+import AppRoutes from "./routes/AppRoutes";
+import { useToast } from "./context/ToastContext";
+import * as api from "./services/api";
 
-const MOCK_DATA = [
-  {
-    id: '1',
-    title: 'Learn React useEffect',
-    description: 'Master the useEffect hook and its various dependency array configurations.',
-    status: 'completed',
-    solutions: [
-      {
-        id: 's1',
-        summary: 'Understood basic lifecycle',
-        createdAt: '2024-04-20T10:00:00Z',
-        fields: [
-          { name: 'link', value: 'https://react.dev/reference/react/useEffect' },
-          { name: 'notes', value: 'useEffect runs after every render by default, but we can control it with dependencies.' }
-        ]
-      },
-      {
-        id: 's2',
-        summary: 'Cleanup function importance',
-        createdAt: '2024-04-21T14:30:00Z',
-        fields: [
-          { name: 'YouTube', value: 'https://www.youtube.com/watch?v=0ZJgIjIuY7U' },
-          { name: 'image', value: 'https://raw.githubusercontent.com/facebook/react/main/fixtures/dom/public/react-logo.png' }
-        ]
-      }
-    ]
-  },
-  {
-    id: '2',
-    title: 'Tailwind CSS Grid & Flexbox',
-    description: 'Build responsive layouts using Tailwind utility classes.',
-    status: 'In Progress',
-    solutions: []
-  }
-];
-
-function App() {
-  const [tasks, setTasks] = useState(MOCK_DATA);
+export default function App() {
+  const [tasks, setTasks] = useState([]);
   const [todos, setTodos] = useState([]);
   const [notes, setNotes] = useState([]);
-  const [groups, setGroups] = useState([
-    { id: '1', name: 'Personal' },
-    { id: '2', name: 'Work' },
-    { id: '3', name: 'Learning' }
-  ]);
+  const [groups, setGroups] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const toast = useToast();
 
-  const addTask = (newTask) => {
-    const taskWithId = {
-      ...newTask,
-      id: Date.now().toString(),
-    };
-    setTasks([...tasks, taskWithId]);
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [tasksData, todosData, notesData, groupsData] = await Promise.all([
+        api.fetchTasks(),
+        api.fetchTodos(),
+        api.fetchNotes(),
+        api.fetchNoteGroups(),
+      ]);
+      setTasks(tasksData || []);
+      setTodos(todosData || []);
+      setNotes(notesData || []);
+      setGroups(groupsData || []);
+    } catch (error) {
+      toast.error("Failed to load data. Please check your connection.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const addSolution = (taskId, solution) => {
-    setTasks(prevTasks => prevTasks.map(task => 
-      task.id === taskId 
-        ? { ...task, solutions: [solution, ...task.solutions] }
-        : task
-    ));
+  const addTask = async (newTask) => {
+    try {
+      const createdTask = await api.createTask(newTask);
+      setTasks((prev) => [...prev, createdTask]);
+      toast.success("Task created!");
+    } catch (error) {
+      toast.error("Failed to create task.");
+    }
   };
 
-  const toggleTaskStatus = (taskId) => {
-    setTasks(prevTasks => prevTasks.map(task =>
-      task.id === taskId
-        ? { ...task, status: task.status === 'completed' ? 'In Progress' : 'completed' }
-        : task
-    ));
+  const addSolution = async (taskId, solution) => {
+    try {
+      const updatedTask = await api.addSolution(taskId, solution);
+      setTasks((prev) => prev.map((t) => (t.id === taskId ? updatedTask : t)));
+    } catch (error) {
+      toast.error("Failed to add solution.");
+    }
   };
 
-  // Todo list functions
-  const addTodo = (newTodo) => {
-    const todoWithId = {
-      ...newTodo,
-      id: Date.now().toString(),
-    };
-    setTodos([...todos, todoWithId]);
+  const toggleTaskStatus = async (taskId) => {
+    try {
+      const task = tasks.find((t) => t.id === taskId);
+      const newStatus = task.status === "completed" ? "In Progress" : "completed";
+      const updatedTask = await api.updateTaskStatus(taskId, newStatus);
+      setTasks((prev) => prev.map((t) => (t.id === taskId ? updatedTask : t)));
+      toast.success(newStatus === "completed" ? "Task completed!" : "Task reopened");
+    } catch (error) {
+      toast.error("Failed to update task status.");
+    }
   };
 
-  const toggleTodo = (todoId) => {
-    setTodos(prevTodos => prevTodos.map(todo =>
-      todo.id === todoId
-        ? { ...todo, completed: !todo.completed }
-        : todo
-    ));
+  const deleteTask = async (taskId) => {
+    try {
+      await api.deleteTask(taskId);
+      setTasks((prev) => prev.filter((t) => t.id !== taskId));
+      toast.success("Task deleted");
+    } catch (error) {
+      toast.error("Failed to delete task.");
+    }
   };
 
-  const deleteTodo = (todoId) => {
-    setTodos(prevTodos => prevTodos.filter(todo => todo.id !== todoId));
+  const addTodo = async (newTodo) => {
+    try {
+      const createdTodo = await api.createTodo(newTodo);
+      setTodos((prev) => [...prev, createdTodo]);
+      toast.success("Todo added!");
+    } catch (error) {
+      toast.error("Failed to create todo.");
+    }
   };
 
-  const convertTodoToTask = (todo) => {
-    const newTask = {
+  const toggleTodo = async (todoId) => {
+    try {
+      const updatedTodo = await api.toggleTodo(todoId);
+      setTodos((prev) => prev.map((t) => (t.id === todoId ? updatedTodo : t)));
+    } catch (error) {
+      toast.error("Failed to toggle todo.");
+    }
+  };
+
+  const deleteTodo = async (todoId) => {
+    try {
+      await api.deleteTodo(todoId);
+      setTodos((prev) => prev.filter((t) => t.id !== todoId));
+      toast.success("Todo deleted");
+    } catch (error) {
+      toast.error("Failed to delete todo.");
+    }
+  };
+
+  const convertTodoToTask = async (todo) => {
+    await addTask({
       title: todo.text,
-      description: '',
-      status: 'In Progress',
-      solutions: []
-    };
-    addTask(newTask);
-    deleteTodo(todo.id);
+      description: "",
+      status: "In Progress",
+      solutions: [],
+    });
+    await deleteTodo(todo.id);
+    toast.success("Todo converted to task!");
   };
 
-  // Note list functions
-  const addNote = (newNote) => {
-    const noteWithId = {
-      ...newNote,
-      id: Date.now().toString(),
-      createdAt: newNote.createdAt || new Date().toISOString()
-    };
-    setNotes([...notes, noteWithId]);
+  const addNote = async (newNote) => {
+    try {
+      const createdNote = await api.createNote(newNote);
+      setNotes((prev) => [...prev, createdNote]);
+    } catch (error) {
+      toast.error("Failed to create note.");
+    }
   };
 
-  const updateNote = (updatedNote) => {
-    setNotes(prevNotes => prevNotes.map(note => 
-      note.id === updatedNote.id ? updatedNote : note
-    ));
+  const updateNote = async (updatedNote) => {
+    try {
+      const result = await api.updateNote(updatedNote.id, updatedNote);
+      setNotes((prev) => prev.map((n) => (n.id === updatedNote.id ? result : n)));
+      toast.success("Note saved");
+    } catch (error) {
+      toast.error("Failed to update note.");
+    }
   };
 
-  const deleteNote = (noteId) => {
-    setNotes(prevNotes => prevNotes.filter(note => note.id !== noteId));
+  const deleteNote = async (noteId) => {
+    try {
+      await api.deleteNote(noteId);
+      setNotes((prev) => prev.filter((n) => n.id !== noteId));
+      toast.success("Note deleted");
+    } catch (error) {
+      toast.error("Failed to delete note.");
+    }
   };
 
-  // Group functions
-  const addGroup = (name) => {
-    const newGroup = {
-      id: Date.now().toString(),
-      name
-    };
-    setGroups([...groups, newGroup]);
+  const addGroup = async (name) => {
+    try {
+      const newGroup = await api.createNoteGroup({ name });
+      setGroups((prev) => [...prev, newGroup]);
+      toast.success("Group created");
+    } catch (error) {
+      toast.error("Failed to create group.");
+    }
   };
 
-  const deleteGroup = (groupId) => {
-    setGroups(prevGroups => prevGroups.filter(g => g.id !== groupId));
-    // Reset group for notes in this group
-    setNotes(prevNotes => prevNotes.map(note => 
-      note.groupId === groupId ? { ...note, groupId: null } : note
-    ));
+  const deleteGroup = async (groupId) => {
+    try {
+      await api.deleteNoteGroup(groupId);
+      setGroups((prev) => prev.filter((g) => g.id !== groupId));
+      setNotes((prev) =>
+        prev.map((note) => (note.groupId === groupId ? { ...note, groupId: null } : note))
+      );
+      toast.success("Group deleted");
+    } catch (error) {
+      toast.error("Failed to delete group.");
+    }
   };
 
   const updateNoteGroup = (noteId, groupId) => {
-    setNotes(prevNotes => prevNotes.map(note =>
-      note.id === noteId ? { ...note, groupId } : note
-    ));
+    setNotes((prev) => prev.map((note) => (note.id === noteId ? { ...note, groupId } : note)));
   };
 
-  const convertTaskToNote = (task) => {
+  const convertTaskToNote = async (task) => {
     const newNote = {
       title: task.title,
-      content: task.description || '',
-      category: 'Task Archive',
-      tags: ['task', 'completed'],
+      content: task.description || "",
+      category: "Task Archive",
+      tags: ["task", "completed"],
       createdAt: new Date().toISOString(),
-      groupId: null
+      groupId: null,
     };
-    addNote(newNote);
-    setTasks(prevTasks => prevTasks.filter(t => t.id !== task.id));
+    await addNote(newNote);
+    await deleteTask(task.id);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-12">
+    <div className="min-h-screen bg-gray-50 pb-16 sm:pb-0">
       <Navbar />
-      <AppRoutes
-        tasks={tasks}
-        todos={todos}
-        notes={notes}
-        groups={groups}
-        addTask={addTask}
-        addTodo={addTodo}
-        addNote={addNote}
-        updateNote={updateNote}
-        addSolution={addSolution}
-        toggleTaskStatus={toggleTaskStatus}
-        toggleTodo={toggleTodo}
-        deleteTodo={deleteTodo}
-        convertTodoToTask={convertTodoToTask}
-        deleteNote={deleteNote}
-        convertTaskToNote={convertTaskToNote}
-        addGroup={addGroup}
-        deleteGroup={deleteGroup}
-        updateNoteGroup={updateNoteGroup}
-      />
+      <main className="pt-2">
+        <AppRoutes
+          tasks={tasks}
+          todos={todos}
+          notes={notes}
+          groups={groups}
+          loading={loading}
+          addTask={addTask}
+          addTodo={addTodo}
+          addNote={addNote}
+          updateNote={updateNote}
+          addSolution={addSolution}
+          toggleTaskStatus={toggleTaskStatus}
+          toggleTodo={toggleTodo}
+          deleteTodo={deleteTodo}
+          convertTodoToTask={convertTodoToTask}
+          deleteNote={deleteNote}
+          convertTaskToNote={convertTaskToNote}
+          addGroup={addGroup}
+          deleteGroup={deleteGroup}
+          updateNoteGroup={updateNoteGroup}
+        />
+      </main>
     </div>
   );
 }
-
-export default App;

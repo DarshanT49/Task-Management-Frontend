@@ -1,14 +1,16 @@
-import { useState } from 'react';
-import Button from '../common/Button';
-import DynamicFieldInput from './DynamicFieldInput';
-import { Lightbulb, Check } from 'lucide-react';
+import { useState } from "react";
+import { motion } from "framer-motion";
+import Button from "../ui/Button";
+import Input from "../ui/Input";
+import DynamicFieldInput from "./DynamicFieldInput";
+import { Lightbulb, X, Check } from "lucide-react";
 
-const SolutionForm = ({ onSubmit, onCancel }) => {
-  const [summary, setSummary] = useState('');
+export default function SolutionForm({ onSubmit, onCancel }) {
+  const [summary, setSummary] = useState("");
   const [fields, setFields] = useState([]);
 
   const handleAddField = () => {
-    setFields([...fields, { name: '', value: '' }]);
+    setFields([...fields, { name: "", value: "" }]);
   };
 
   const handleRemoveField = (index) => {
@@ -24,65 +26,54 @@ const SolutionForm = ({ onSubmit, onCancel }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!summary.trim()) return;
-    
-    // Filter out empty fields
-    const activeFields = fields.filter(f => f.name.trim() && f.value.trim());
-    
-    onSubmit({ 
-      id: Date.now().toString(),
-      summary, 
+    const activeFields = fields.filter((f) => f.name.trim() && f.value.trim());
+    onSubmit({
+      summary,
       fields: activeFields,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     });
-    
-    setSummary('');
+    setSummary("");
     setFields([]);
   };
 
   return (
-    <div className="bg-white border-2 border-blue-500 rounded-2xl shadow-2xl overflow-hidden">
-      <div className="px-6 py-3 bg-blue-500 flex items-center justify-between">
-        <h3 className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
-          <Lightbulb size={14} /> New Solution Entry
-        </h3>
-        <button onClick={onCancel} className="text-blue-100 hover:text-white transition-colors text-[10px] font-bold uppercase tracking-widest">
-          Cancel
-        </button>
-      </div>
-
-      <form onSubmit={handleSubmit} className="p-6 space-y-6">
-        <div className="space-y-1.5">
-          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">Summary</label>
-          <input
-            autoFocus
-            value={summary}
-            onChange={(e) => setSummary(e.target.value)}
-            placeholder="What was the breakthrough or key takeaway?"
-            className="w-full bg-transparent border-none text-lg font-bold text-gray-900 placeholder-gray-200 focus:outline-none"
-            required
-          />
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-bold text-text-primary flex items-center gap-2">
+            <Lightbulb size={16} className="text-primary-500" />
+            New Solution Entry
+          </h3>
+          {onCancel && (
+            <button type="button" onClick={onCancel} className="p-1.5 text-text-tertiary hover:text-text-primary rounded-lg hover:bg-gray-100 transition-colors">
+              <X size={18} />
+            </button>
+          )}
         </div>
 
-        <div className="pt-2">
-          <DynamicFieldInput
-            fields={fields}
-            onAddField={handleAddField}
-            onRemoveField={handleRemoveField}
-            onFieldChange={handleFieldChange}
-          />
-        </div>
+        <Input
+          label="Summary"
+          value={summary}
+          onChange={(e) => setSummary(e.target.value)}
+          placeholder="What was the breakthrough or key takeaway?"
+          required
+          autoFocus
+        />
 
-        <div className="flex gap-3 justify-end pt-4 border-t border-gray-50">
-          <button 
-            type="submit" 
-            className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 active:scale-95"
-          >
+        <DynamicFieldInput
+          fields={fields}
+          onAddField={handleAddField}
+          onRemoveField={handleRemoveField}
+          onFieldChange={handleFieldChange}
+        />
+
+        <div className="flex gap-3 justify-end pt-2 border-t border-border/60">
+          <Button variant="secondary" onClick={onCancel}>Cancel</Button>
+          <Button type="submit">
             <Check size={14} /> Save Outcome
-          </button>
+          </Button>
         </div>
       </form>
-    </div>
+    </motion.div>
   );
-};
-
-export default SolutionForm;
+}

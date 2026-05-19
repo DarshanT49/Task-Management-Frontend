@@ -1,10 +1,13 @@
-import Card from '../common/Card';
-import { ExternalLink, Calendar, Hash, FileText, Image as ImageIcon } from 'lucide-react';
+import { motion } from "framer-motion";
+import Card from "../ui/Card";
+import Badge from "../ui/Badge";
+import { ExternalLink, Calendar, FileText } from "lucide-react";
+import { formatDate, cn } from "../../lib/utils";
 
-const SolutionCard = ({ solution }) => {
+export default function SolutionCard({ solution }) {
   const isUrl = (string) => {
     try {
-      if (!string.startsWith('http')) return false;
+      if (!string.startsWith("http")) return false;
       new URL(string);
       return true;
     } catch {
@@ -12,70 +15,53 @@ const SolutionCard = ({ solution }) => {
     }
   };
 
-  const isImageUrl = (url) => {
-    return url.match(/\.(jpeg|jpg|gif|png|webp|svg)$/) != null;
-  };
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric' 
-    });
-  };
+  const isImageUrl = (url) => url.match(/\.(jpeg|jpg|gif|png|webp|svg)(\?.*)?$/i);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 group overflow-hidden border-l-4 border-l-blue-500">
-      <div className="p-5">
-        <div className="flex justify-between items-start gap-4 mb-4">
-          <div className="flex-1 min-w-0">
-            <h4 className="text-base font-bold text-gray-900 leading-tight group-hover:text-blue-600 transition-colors">
-              {solution.summary}
-            </h4>
-          </div>
-          <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-2 py-1 rounded-md whitespace-nowrap">
-            <Calendar size={12} className="text-gray-300" />
-            {formatDate(solution.createdAt)}
-          </div>
-        </div>
-
-        {solution.fields && solution.fields.length > 0 && (
-          <div className="space-y-4 border-t border-gray-50 pt-4 mt-4">
-            {solution.fields.map((field, index) => (
-              <div key={index} className="flex flex-col gap-1.5">
-                <div className="flex items-center gap-1.5 text-[9px] font-black text-gray-400 uppercase tracking-widest">
-                  <Hash size={10} /> {field.name}
-                </div>
-                
-                <div className="text-sm text-gray-700">
-                  {isImageUrl(field.value) ? (
-                    <div className="mt-1 rounded-xl overflow-hidden border border-gray-100 max-w-md shadow-sm group-hover:shadow-md transition-shadow">
-                      <img src={field.value} alt={field.name} className="w-full h-auto object-cover max-h-72" />
-                    </div>
-                  ) : isUrl(field.value) ? (
-                    <a 
-                      href={field.value} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-700 hover:underline font-bold transition-all bg-blue-50/50 px-2 py-1 rounded-lg border border-blue-100/50"
-                    >
-                      {field.value.replace(/^https?:\/\//, '')} <ExternalLink size={12} />
-                    </a>
-                  ) : (
-                    <div className="bg-gray-50/80 p-3 rounded-xl border border-gray-100/50 flex items-start gap-3">
-                      <FileText size={14} className="text-gray-300 mt-0.5" />
-                      <p className="italic leading-relaxed flex-1">{field.value}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+    <Card padding="md" hover className="border-l-[3px] border-l-primary-500">
+      <div className="flex items-start justify-between gap-4 mb-3">
+        <h4 className="text-sm font-bold text-text-primary leading-tight group-hover:text-primary-600 transition-colors">
+          {solution.summary}
+        </h4>
+        <Badge variant="default" size="sm" className="whitespace-nowrap flex-shrink-0">
+          <Calendar size={10} />
+          <span>{formatDate(solution.createdAt)}</span>
+        </Badge>
       </div>
-    </div>
-  );
-};
 
-export default SolutionCard;
+      {solution.fields && solution.fields.length > 0 && (
+        <div className="space-y-3 border-t border-border/60 pt-3 mt-3">
+          {solution.fields.map((field, index) => (
+            <div key={index}>
+              <div className="text-[10px] font-bold text-text-tertiary uppercase tracking-widest mb-1 flex items-center gap-1">
+                <span className="w-1 h-1 rounded-full bg-primary-400" />
+                {field.name}
+              </div>
+              <div className="text-sm">
+                {isImageUrl(field.value) ? (
+                  <div className="mt-1 rounded-xl overflow-hidden border border-border/60 shadow-soft">
+                    <img src={field.value} alt={field.name} className="w-full h-auto object-cover max-h-72" />
+                  </div>
+                ) : isUrl(field.value) ? (
+                  <a
+                    href={field.value}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-primary-600 hover:text-primary-700 hover:underline font-bold transition-all bg-primary-50/50 px-2 py-1 rounded-lg border border-primary-100/50"
+                  >
+                    {field.value.replace(/^https?:\/\//, "")} <ExternalLink size={12} />
+                  </a>
+                ) : (
+                  <div className="bg-surface-subtle/80 p-3 rounded-xl border border-border/50 flex items-start gap-3">
+                    <FileText size={14} className="text-text-tertiary mt-0.5" />
+                    <p className="italic leading-relaxed flex-1 text-text-secondary">{field.value}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
+  );
+}

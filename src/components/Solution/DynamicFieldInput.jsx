@@ -1,16 +1,18 @@
-import { Plus, Trash2, Hash, FileText } from 'lucide-react';
+import { motion } from "framer-motion";
+import { Plus, Trash2, Hash } from "lucide-react";
 
-const DynamicFieldInput = ({ fields, onAddField, onRemoveField, onFieldChange }) => {
+export default function DynamicFieldInput({ fields, onAddField, onRemoveField, onFieldChange }) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-          <Hash size={12} /> Supporting Evidence / Notes
+        <label className="text-sm font-semibold text-text-primary flex items-center gap-1.5">
+          <Hash size={14} />
+          Supporting Evidence
         </label>
-        <button 
-          type="button" 
+        <button
+          type="button"
           onClick={onAddField}
-          className="flex items-center gap-1.5 text-[10px] font-bold text-blue-600 hover:text-blue-700 transition-colors uppercase tracking-widest bg-blue-50 px-2 py-1 rounded-md"
+          className="inline-flex items-center gap-1 text-xs font-bold text-primary-600 hover:text-primary-700 transition-colors bg-primary-50 px-2.5 py-1.5 rounded-lg"
         >
           <Plus size={12} /> Add Field
         </button>
@@ -18,46 +20,48 @@ const DynamicFieldInput = ({ fields, onAddField, onRemoveField, onFieldChange })
 
       <div className="space-y-2">
         {fields.map((field, index) => (
-          <div key={index} className="flex gap-2 items-center bg-gray-50/50 p-2 rounded-xl border border-gray-100 group animate-in fade-in slide-in-from-left-2 duration-200">
-            <div className="flex-1 flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg shadow-sm">
-              <span className="text-[10px] font-black text-gray-400 uppercase border-r border-gray-100 pr-2 min-w-[60px]">Label</span>
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -10 }}
+            className="flex gap-2 items-start"
+          >
+            <div className="flex-1">
               <input
                 value={field.name}
-                onChange={(e) => onFieldChange(index, 'name', e.target.value)}
-                placeholder="e.g. Link"
-                className="flex-1 bg-transparent border-none text-xs font-bold text-gray-700 placeholder-gray-300 focus:outline-none"
+                onChange={(e) => onFieldChange(index, "name", e.target.value)}
+                placeholder="Label (e.g. Link)"
+                className="w-full px-3 py-2 rounded-lg border border-border text-xs font-semibold text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
               />
             </div>
-            
-            <div className="flex-[2] flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg shadow-sm">
-              <span className="text-[10px] font-black text-gray-400 uppercase border-r border-gray-100 pr-2 min-w-[60px]">Value</span>
+            <div className="flex-[2]">
               <input
                 value={field.value}
-                onChange={(e) => onFieldChange(index, 'value', e.target.value)}
-                placeholder="e.g. https://..."
-                className="flex-1 bg-transparent border-none text-xs font-medium text-gray-600 placeholder-gray-300 focus:outline-none"
+                onChange={(e) => onFieldChange(index, "value", e.target.value)}
+                placeholder="Value (e.g. https://...)"
+                className="w-full px-3 py-2 rounded-lg border border-border text-sm text-text-secondary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
               />
             </div>
-
             <button
               type="button"
               onClick={() => onRemoveField(index)}
-              className="p-2 text-gray-300 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100"
+              className="p-2 text-text-tertiary hover:text-danger transition-colors"
               title="Remove Field"
             >
               <Trash2 size={14} />
             </button>
-          </div>
+          </motion.div>
         ))}
       </div>
 
       {fields.length === 0 && (
-        <div className="py-4 border-2 border-dashed border-gray-50 rounded-xl flex items-center justify-center">
-          <p className="text-[10px] font-bold text-gray-300 uppercase tracking-widest italic">No extra metadata added</p>
+        <div className="py-6 border-2 border-dashed border-border/40 rounded-xl flex items-center justify-center">
+          <p className="text-xs font-medium text-text-tertiary italic">
+            No extra metadata added — click "Add Field" to include links, images, or notes
+          </p>
         </div>
       )}
     </div>
   );
-};
-
-export default DynamicFieldInput;
+}

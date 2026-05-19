@@ -1,28 +1,38 @@
-import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import Container from '../components/layout/Container';
-import Button from '../components/common/Button';
-import SolutionForm from '../components/Solution/SolutionForm';
-import SolutionCard from '../components/Solution/SolutionCard';
-import { ArrowLeft, CheckCircle2, Circle, Plus, Archive, ChevronRight, LayoutGrid } from 'lucide-react';
+import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import Container from "../components/layout/Container";
+import Button from "../components/ui/Button";
+import Badge from "../components/ui/Badge";
+import Card from "../components/ui/Card";
+import EmptyState from "../components/ui/EmptyState";
+import Modal from "../components/ui/Modal";
+import SolutionForm from "../components/Solution/SolutionForm";
+import SolutionCard from "../components/Solution/SolutionCard";
+import { useToast } from "../context/ToastContext";
+import { ArrowLeft, CheckCircle2, Circle, Plus, Archive, ChevronRight } from "lucide-react";
+import { getStatusColor, formatDateFull } from "../lib/utils";
 
-const TaskDetail = ({ tasks, addSolution, toggleTaskStatus, convertTaskToNote }) => {
+export default function TaskDetail({ tasks, addSolution, toggleTaskStatus, convertTaskToNote }) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const toast = useToast();
   const [showSolutionForm, setShowSolutionForm] = useState(false);
-  const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
+  const [showArchiveModal, setShowArchiveModal] = useState(false);
 
-  const task = tasks.find(t => t.id === id);
+  const task = tasks.find((t) => String(t.id) === id);
+  const isCompleted = task?.status === "completed";
+  const statusColor = getStatusColor(task?.status);
 
   if (!task) {
     return (
       <Container>
-        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-          <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 text-gray-300">
-            <LayoutGrid size={32} />
-          </div>
-          <h2 className="text-xl font-bold text-gray-900">Task not found</h2>
-          <Button onClick={() => navigate('/')} className="mt-4 shadow-lg shadow-blue-100">Back to Dashboard</Button>
+        <div className="flex flex-col items-center justify-center min-h-[60vh]">
+          <EmptyState
+            title="Task not found"
+            description="This task may have been deleted or the link is invalid."
+            action={<Button onClick={() => navigate("/")}>Back to Dashboard</Button>}
+          />
         </div>
       </Container>
     );
@@ -30,64 +40,63 @@ const TaskDetail = ({ tasks, addSolution, toggleTaskStatus, convertTaskToNote })
 
   const handleConvertToNote = () => {
     convertTaskToNote(task);
-    navigate('/notes');
+    navigate("/notes");
+    toast.success("Task archived as note");
   };
 
-  const isCompleted = task.status === 'completed';
+  const handleToggleStatus = () => {
+    const newStatus = isCompleted ? "In Progress" : "completed";
+    toggleTaskStatus(task.id);
+    toast.success(newStatus === "completed" ? "Task marked as completed!" : "Task reopened");
+  };
 
   return (
-    <div className="bg-white min-h-screen pb-10">
-      {/* Premium Task Header */}
-      <div className="bg-gray-50/30 border-b border-gray-100">
+    <div className="min-h-screen pb-10">
+      {/* Task Header */}
+      <div className="bg-white border-b border-border/60">
         <Container>
-          <div className="py-2">
-            <nav className="flex items-center gap-2 text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2">
-              <button onClick={() => navigate('/')} className="hover:text-blue-500 transition-colors">Dashboard</button>
-              <ChevronRight size={8} />
-              <span className="text-gray-900">Task</span>
+          <div className="py-4 sm:py-5">
+            {/* Breadcrumb */}
+            <nav className="flex items-center gap-1.5 text-xs font-bold text-text-tertiary uppercase tracking-widest mb-3">
+              <button onClick={() => navigate("/")} className="hover:text-primary-600 transition-colors">Dashboard</button>
+              <ChevronRight size={10} />
+              <span className="text-text-primary">Task</span>
             </nav>
 
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className={`${isCompleted ? 'text-green-500' : 'text-blue-500'}`}>
-                    {isCompleted ? <CheckCircle2 size={20} /> : <Circle size={20} className="animate-pulse" />}
+                <div className="flex items-start gap-3">
+                  <button onClick={handleToggleStatus} className="mt-0.5 flex-shrink-0">
+                    {isCompleted ? (
+                      <CheckCircle2 size={24} className="text-success" />
+                    ) : (
+                      <Circle size={24} className="text-primary-400 animate-pulse-soft" />
+                    )}
+                  </button>
+                  <div>
+                    <h1 className="text-xl sm:text-2xl font-black text-text-primary tracking-tight truncate">{task.title}</h1>
+                    <p className="text-sm text-text-secondary mt-1 max-w-3xl">
+                      {task.description || "No description provided."}
+                    </p>
                   </div>
-                  <h1 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight truncate">{task.title}</h1>
                 </div>
-                <p className="text-xs text-gray-500 max-w-3xl leading-tight font-medium pl-7">
-                  {task.description || "No description provided."}
-                </p>
               </div>
 
-              <div className="flex items-center gap-2 pl-7 md:pl-0">
-                <button
-                  onClick={() => toggleTaskStatus(task.id)}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95 ${
-                    isCompleted 
-                      ? 'bg-green-50 text-green-600 hover:bg-green-100' 
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
-                  }`}
+              <div className="flex items-center gap-2 pl-11 sm:pl-0">
+                <Badge variant={isCompleted ? "success" : "primary"} dot>
+                  {isCompleted ? "Completed" : "In Progress"}
+                </Badge>
+                <Button
+                  variant={isCompleted ? "secondary" : "primary"}
+                  size="sm"
+                  onClick={handleToggleStatus}
                 >
-                  {isCompleted ? 'Completed' : 'Mark Complete'}
-                </button>
-
-                {isCompleted && !showArchiveConfirm && (
-                  <button
-                    onClick={() => setShowArchiveConfirm(true)}
-                    className="p-1.5 bg-gray-100 text-gray-400 hover:bg-gray-900 hover:text-white rounded-lg transition-all"
-                    title="Convert to Note"
-                  >
-                    <Archive size={16} />
-                  </button>
-                )}
-
-                {isCompleted && showArchiveConfirm && (
-                  <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-lg p-0.5 shadow-sm">
-                    <span className="text-[9px] font-bold text-gray-400 uppercase px-1.5 text-nowrap">Archive?</span>
-                    <button onClick={handleConvertToNote} className="px-2 py-0.5 bg-gray-900 text-white text-[9px] font-bold rounded hover:bg-gray-800 uppercase">Yes</button>
-                    <button onClick={() => setShowArchiveConfirm(false)} className="px-2 py-0.5 bg-gray-50 text-gray-400 text-[9px] font-bold rounded hover:bg-gray-100 uppercase">No</button>
-                  </div>
+                  {isCompleted ? "Reopen" : "Complete"}
+                </Button>
+                {isCompleted && (
+                  <Button variant="ghost" size="sm" onClick={() => setShowArchiveModal(true)}>
+                    <Archive size={14} />
+                  </Button>
                 )}
               </div>
             </div>
@@ -96,54 +105,86 @@ const TaskDetail = ({ tasks, addSolution, toggleTaskStatus, convertTaskToNote })
       </div>
 
       {/* Solutions Section */}
-      <Container className="mt-4">
+      <Container className="mt-6">
         <div className="max-w-4xl mx-auto">
-          <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
-            <div>
-              <h2 className="text-sm font-black text-gray-900 uppercase tracking-tight flex items-center gap-2">
-                Solution Log <span className="text-[9px] font-bold text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded-md">{task.solutions?.length || 0}</span>
-              </h2>
-            </div>
-            {!showSolutionForm && (
-              <button 
-                onClick={() => setShowSolutionForm(true)} 
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white text-[10px] font-bold uppercase tracking-widest rounded-lg hover:bg-gray-800 transition-all active:scale-95"
-              >
-                <Plus size={14} /> New Entry
-              </button>
-            )}
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-sm font-bold text-text-primary flex items-center gap-2">
+              Solution Log
+              <Badge size="sm">{task.solutions?.length || 0}</Badge>
+            </h2>
+            <AnimatePresence>
+              {!showSolutionForm && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                >
+                  <Button size="sm" onClick={() => setShowSolutionForm(true)}>
+                    <Plus size={14} /> New Entry
+                  </Button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
-          {showSolutionForm && (
-            <div className="mb-6">
-              <SolutionForm
-                onSubmit={(solution) => {
-                  addSolution(task.id, solution);
-                  setShowSolutionForm(false);
-                }}
-                onCancel={() => setShowSolutionForm(false)}
-              />
-            </div>
-          )}
+          <AnimatePresence>
+            {showSolutionForm && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden mb-6"
+              >
+                <Card className="border-primary-200 bg-primary-50/30">
+                  <SolutionForm
+                    onSubmit={(solution) => {
+                      addSolution(task.id, solution);
+                      setShowSolutionForm(false);
+                      toast.success("Solution added!");
+                    }}
+                    onCancel={() => setShowSolutionForm(false)}
+                  />
+                </Card>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <div className="space-y-3">
             {task.solutions && task.solutions.length > 0 ? (
-              task.solutions.map((solution) => (
-                <SolutionCard key={solution.id} solution={solution} />
-              ))
+              <motion.div className="space-y-3" initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.05 } } }}>
+                {task.solutions.map((solution, i) => (
+                  <motion.div
+                    key={solution.id}
+                    variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}
+                  >
+                    <SolutionCard solution={solution} />
+                  </motion.div>
+                ))}
+              </motion.div>
             ) : (
-              <div className="text-center py-12 bg-gray-50/30 rounded-2xl border-2 border-dashed border-gray-50 flex flex-col items-center">
-                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center mb-2 text-gray-200 shadow-sm border border-gray-50">
-                  <CheckCircle2 size={20} />
-                </div>
-                <p className="text-gray-400 font-bold uppercase tracking-widest text-[9px]">No solutions yet</p>
-              </div>
+              <EmptyState icon="empty" title="No solutions yet" description="Add your first learning solution to track what you've learned." />
             )}
           </div>
         </div>
       </Container>
+
+      {/* Archive Confirmation Modal */}
+      <Modal open={showArchiveModal} onClose={() => setShowArchiveModal(false)} title="Archive this task?">
+        <p className="text-sm text-text-secondary mb-6">
+          This task will be archived as a note. You can find it in the Notes section.
+        </p>
+        <div className="flex gap-3 justify-end">
+          <Button variant="secondary" onClick={() => setShowArchiveModal(false)}>Cancel</Button>
+          <Button
+            onClick={() => {
+              handleConvertToNote();
+              setShowArchiveModal(false);
+            }}
+          >
+            Archive
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
-};
-
-export default TaskDetail;
+}

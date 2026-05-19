@@ -1,44 +1,58 @@
-import TodoCard from './TodoCard';
+import { motion } from "framer-motion";
+import TodoCard from "./TodoCard";
+import EmptyState from "../ui/EmptyState";
+import Badge from "../ui/Badge";
 
-const TodoList = ({ todos, onToggle, onDelete, onConvertToTask }) => {
+export default function TodoList({ todos, onToggle, onDelete, onConvertToTask }) {
   if (todos.length === 0) {
     return (
-      <div className="text-center py-12 bg-white rounded-xl border border-dashed border-gray-300">
-        <p className="text-gray-500">No todos found. Add one to get started!</p>
-      </div>
+      <EmptyState
+        icon="done"
+        title="All caught up!"
+        description="Add a todo to get started."
+      />
     );
   }
 
-  const completedCount = todos.filter(t => t.completed).length;
+  const completedCount = todos.filter((t) => t.completed).length;
   const totalCount = todos.length;
+  const allDone = completedCount > 0 && completedCount === totalCount;
 
   return (
     <div className="space-y-3">
-      <div className="flex justify-between items-center mb-4">
-        <span className="text-sm text-gray-500 font-medium">
-          {completedCount} of {totalCount} completed
-        </span>
+      <div className="flex items-center justify-between mb-1">
+        <Badge variant={allDone ? "success" : "default"} size="sm">
+          {completedCount}/{totalCount} done
+        </Badge>
       </div>
 
-      <div className="space-y-2">
+      <motion.div
+        className="space-y-2"
+        initial="hidden"
+        animate="visible"
+        variants={{ visible: { transition: { staggerChildren: 0.03 } } }}
+      >
         {todos.map((todo) => (
-          <TodoCard
-            key={todo.id}
-            todo={todo}
-            onToggle={onToggle}
-            onDelete={onDelete}
-            onConvertToTask={onConvertToTask}
-          />
+          <motion.div key={todo.id} variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}>
+            <TodoCard
+              todo={todo}
+              onToggle={onToggle}
+              onDelete={onDelete}
+              onConvertToTask={onConvertToTask}
+            />
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
-      {completedCount > 0 && completedCount === totalCount && (
-        <div className="text-center py-4 bg-green-50 rounded-lg">
-          <p className="text-green-700 font-medium">All tasks completed! Great job!</p>
-        </div>
+      {allDone && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center py-4 bg-success/10 rounded-xl border border-success/20"
+        >
+          <p className="text-sm font-bold text-success">All tasks completed! Great job!</p>
+        </motion.div>
       )}
     </div>
   );
-};
-
-export default TodoList;
+}
