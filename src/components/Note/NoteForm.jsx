@@ -28,23 +28,20 @@ export default function NoteForm({ onSubmit, onDelete, initialData, groups }) {
     }
   }, [initialData]);
 
-  useEffect(() => {
-    if (isSaved) return;
-    const timeoutId = setTimeout(() => {
-      const content = editorRef.current?.innerHTML || "";
-      if (!title.trim() && !content.trim()) return;
-      onSubmit({
-        id: initialData?.id,
-        title: title || "Untitled Note",
-        content,
-        groupId: groupId || null,
-        tags: initialData?.tags || [],
-        createdAt: initialData?.createdAt || new Date().toISOString(),
-      });
-      setIsSaved(true);
-    }, 1000);
-    return () => clearTimeout(timeoutId);
-  }, [title, groupId, isSaved, initialData, onSubmit]);
+  const handleSave = () => {
+    const content = editorRef.current?.innerHTML || "";
+    if (!title.trim() && !content.trim()) return;
+    
+    onSubmit({
+      id: initialData?.id,
+      title: title || "Untitled Note",
+      content,
+      groupId: groupId || null,
+      tags: initialData?.tags || [],
+      createdAt: initialData?.createdAt || new Date().toISOString(),
+    });
+    setIsSaved(true);
+  };
 
   const handleTitleChange = (value) => {
     setTitle(value);
@@ -145,15 +142,23 @@ export default function NoteForm({ onSubmit, onDelete, initialData, groups }) {
         </div>
 
         <div className="flex items-center gap-2">
-          {isSaved ? (
-            <div className="flex items-center gap-1 text-[10px] font-bold text-success bg-success/10 px-2.5 py-1 rounded-full uppercase tracking-wider">
-              <Check size={10} /> Saved
-            </div>
-          ) : (
-            <div className="flex items-center gap-1 text-[10px] font-bold text-primary-600 bg-primary-50 px-2.5 py-1 rounded-full uppercase tracking-wider">
-              <Clock size={10} className="animate-pulse-soft" /> Saving...
-            </div>
-          )}
+          <button
+            onClick={handleSave}
+            disabled={isSaved}
+            className={`flex items-center gap-1 text-[10px] font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider transition-all ${
+              isSaved
+                ? "text-success bg-success/10 cursor-not-allowed"
+                : "text-white bg-primary-600 hover:bg-primary-700 shadow-md shadow-primary-500/20"
+            }`}
+          >
+            {isSaved ? (
+              <>
+                <Check size={12} /> Saved
+              </>
+            ) : (
+              "Save Note"
+            )}
+          </button>
           <div className="h-5 w-px bg-border" />
           {initialData && (
             <button

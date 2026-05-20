@@ -31,9 +31,10 @@ export default function NoteCard({ note, onDelete, onEdit, groups, onUpdateGroup
         <h4 className="font-bold text-text-primary text-base leading-tight mb-2 group-hover:text-primary-600 transition-colors">
           {note.title}
         </h4>
-        <p className="text-text-secondary text-sm whitespace-pre-wrap line-clamp-4 leading-relaxed">
-          {note.content || "No content"}
-        </p>
+        <div 
+          className="text-text-secondary text-sm whitespace-pre-wrap line-clamp-4 leading-relaxed"
+          dangerouslySetInnerHTML={{ __html: note.content || "No content" }}
+        />
       </button>
 
       <div className="mt-4 pt-3 border-t border-border/60 flex items-center justify-between text-[10px] text-text-tertiary font-bold uppercase tracking-widest">
@@ -56,7 +57,10 @@ export default function NoteCard({ note, onDelete, onEdit, groups, onUpdateGroup
           {group && <span className="flex items-center gap-1"><Folder size={12} /> {group.name}</span>}
         </div>
         <div className="bg-yellow-50/50 rounded-xl p-5 border border-yellow-100">
-          <p className="text-text-secondary text-base leading-relaxed whitespace-pre-wrap">{note.content}</p>
+          <div 
+            className="text-text-secondary text-base leading-relaxed whitespace-pre-wrap"
+            dangerouslySetInnerHTML={{ __html: note.content || "No content" }}
+          />
         </div>
         {note.tags && note.tags.length > 0 && (
           <div className="mt-6 flex flex-wrap gap-2">
